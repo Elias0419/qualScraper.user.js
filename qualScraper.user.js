@@ -1,3 +1,4 @@
+
 // ==UserScript==
 // @name         testing
 // @namespace    http://tampermonkey.net/
@@ -16,8 +17,9 @@
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=mturk.com
 // @grant        none
 // ==/UserScript==
-
+let timeout = "1850";
 let counter = " ";
+let retry_count = "0";
 window.onload = function ()
 {
    let t = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
@@ -38,7 +40,6 @@ window.onload = function ()
     (bar.innerHTML = `&nbsp&nbsp&nbsp` +counter +
 
      `&nbsp&nbsp&nbsp
-
     <!-- Progress bar-->
    `
     )
@@ -49,8 +50,8 @@ window.onload = function ()
 		{
 
                  $("#button").html("Cancel");
-			
-			
+
+
 var db = new Dexie("qualifications");
 
 
@@ -77,7 +78,7 @@ quals: `
 
                 counter++
                 $("#progressBar").html("&nbsp&nbsp&nbspProcessing&nbsppage&nbsp"+counter);
-            console.log(counter)
+            //console.log(counter)
 				let scraping = "true";
 				let page = "https://worker.mturk.com/qualifications/assigned.json?page_size=100&" + nextPageToken;
 
@@ -104,20 +105,53 @@ quals: `
 								hasTest: t.has_test
 							}])
 						})
-						if (data.next_page_token !== null)
-						{
-							setTimeout(() =>
-							{
-								getAssignedQualifications(data.next_page_token);
-							}, 3000);
+					if (data.next_page_token !== null) {
+            setTimeout(() => {
+              page = `https://worker.mturk.com/qualifications/assigned.json?page_size=100&next_token=${encodeURIComponent(data.next_page_token)}`
+              getAssignedQualifications(data.next_page_token);
+            }, timeout);
+
+          } else {
+            console.log("Scraping completed");
+            console.log(counter + "pages");
+            console.log("Timeout" + timeout);
+            console.log(retry_count + "timeouts");
+            $("#progressBar").html("&nbsp&nbsp&nbspScrape&nbspComplete<br>&nbsp&nbsp&nbsp" + counter + "&nbspPages<br>&nbsp&nbsp&nbsp<a href='https://worker.mturk.com/qt' target='_blank'>Click&nbspHere</a>");
+          }
+        })
+        .catch(function(error) {
+            if (error.status === 429 && retry_count < 5) {
+              retry_count++;
+              timeout += 500;
+              console.log("timed out, incrementing clock to " + timeout + " milliseconds")
+              setTimeout(() => {
+                getAssignedQualifications(nextPageToken);
+              }, 10000);
+            } else {
+                    $("#progressBar").html("Timed&nbspout&nbsp5&nbsptimes,&nbspaborting.&nbsp" +timeout+"&nbspmilliseconds.");
+              console.log("Timed out 5 times, aborting. " +timeout+" milliseconds.");
+            }
+                $("#button").html("Retry?");
+                $("#button").css("background-color", "#e80c0f");
+                document.getElementById("button").addEventListener("click", function e() {
+                location.reload()
+
+
 						}
-					})
+					)
+
 			}
-			getAssignedQualifications();
 
+              )
 
-		})
-};
+            }
+        getAssignedQualifications();
+        }
+
+)
+
+		 }
+;
 
 //console.log(counter)
 
@@ -163,14 +197,11 @@ if (location.href === "https://worker.mturk.com/qt")
 
 	gridDiv.innerHTML = `
 <div id="myGrid" style=" width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;" class="ag-theme-alpine">
-
 <style>
 .ag-theme-alpine {
     --ag-grid-size: 3px;
 }
-
     @media only screen {
-
         html, body {
             height: 100%;
             width: 100%;
@@ -178,7 +209,6 @@ if (location.href === "https://worker.mturk.com/qt")
             box-sizing: border-box;
             -webkit-overflow-scrolling: touch;
         }
-
         html {
             position: absolute;
             top: 0;
@@ -186,14 +216,12 @@ if (location.href === "https://worker.mturk.com/qt")
             padding: 0;
             overflow: auto;
         }
-
         body {
             padding: 1rem;
             overflow: auto;
         }
     }
 </style>
-
      </div>`
 
 
@@ -218,7 +246,7 @@ if (location.href === "https://worker.mturk.com/qt")
 		},
 		{
 			headerName: 'Other Details',
-			children: [
+            children: [
 			{
 				field: "canRetake",
 				columnGroupShow: 'closed'
@@ -273,8 +301,3 @@ if (location.href === "https://worker.mturk.com/qt")
 		})
 	})
 }
-
-
-
-
-
