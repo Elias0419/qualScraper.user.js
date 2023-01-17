@@ -16,12 +16,11 @@
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=mturk.com
 // @grant        none
 // ==/UserScript==
-/* // @resource     https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-ballham.css*/
+
 let counter = " ";
 window.onload = function ()
 {
-
-	let t = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
+   let t = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
 		e = t.parentNode,
 		o = document.createElement("button");
 	(o.style.background = "#343aeb"),
@@ -41,28 +40,23 @@ window.onload = function ()
      `&nbsp&nbsp&nbsp
 
     <!-- Progress bar-->
-
-
    `
-
     )
     bParent.insertBefore(bar, b);
 ;
 
-
-
-
-
 		document.getElementById("button").addEventListener("click", function e()
 		{
 
-$("#button").html("Cancel");
-			var db = new Dexie("qualifications");
+                 $("#button").html("Cancel");
+			
+			
+var db = new Dexie("qualifications");
 
 
-			db.version(1).stores(
+db.version(1).stores(
 			{
-				quals: `
+quals: `
         id,
         requester,
         description,
