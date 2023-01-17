@@ -1,12 +1,10 @@
-
-
 // ==UserScript==
 // @name         testing
 // @namespace    http://tampermonkey.net/
 // @version      0.1
 // @description  try to take over the world!
 // @author       You
-// @match        https://worker.mturk.com/qualifications/*
+// @match        https://worker.mturk.com/qualifications/assigned
 // @match        https://worker.mturk.com/qt
 // @require      https://code.jquery.com/jquery-3.6.3.js
 // @require      https://unpkg.com/dexie/dist/dexie.js
@@ -18,9 +16,9 @@
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=mturk.com
 // @grant        none
 // ==/UserScript==
-let timeout = "1850";
+let timeout = 1850;
 let counter = " ";
-let retry_count = "0";
+let retry_count = 0;
 let page = "https://worker.mturk.com/qualifications/assigned.json?page_size=100";
 window.onload = function ()
 {
@@ -51,9 +49,28 @@ window.onload = function ()
 		document.getElementById("button").addEventListener("click", function e()
 		{
 
-                 $("#button").html("Cancel");
+                 $("#button").remove();
+             let t = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
+		     e = t.parentNode,
+            c = document.createElement("button");
+            (c.style.color = "#fff"),
+            (c.style.background = "#fc0f03"),
+            (c.innerHTML = "Cancel"),
+             (c.id = "cancelButton"),
+             e.insertBefore(c, t);
 
+            function cancel()
+            //throw new Error("Something went badly wrong!");
+            {console.log("TEST");
+              throw new Error("Cancelled");
+            };
+/*
+            document.getElementById("cancelButton").addEventListener("click", function e()
+                                                                     {return;
+		//{cancel()
 
+        });
+*/
 var db = new Dexie("qualifications");
 
 
@@ -79,10 +96,7 @@ quals: `
 			{
 
                 counter++
-                $("#progressBar").html("&nbsp&nbsp&nbspProcessing&nbsppage&nbsp"+counter);
-            //console.log(counter)
-				//let scraping = "true";
-				//let page = "https://worker.mturk.com/qualifications/assigned.json?page_size=100&next_page=$" + nextPageToken;
+                $("#progressBar").html("&nbsp&nbsp&nbspProcessing&nbsppage&nbsp"+counter+"&nbsp&nbsp&nbsp");
 
 				$.getJSON(page)
 					.then(function (data)
@@ -112,7 +126,9 @@ quals: `
               page = `https://worker.mturk.com/qualifications/assigned.json?page_size=100&next_token=${encodeURIComponent(data.next_page_token)}`
               getAssignedQualifications(data.next_page_token);
             }, timeout);
-
+          document.getElementById("cancelButton").addEventListener("click", function e()
+                                                          {cancel()})
+                                                                     //{return;})
           } else {
             console.log("Scraping completed");
             console.log(counter + "pages");
@@ -148,6 +164,7 @@ quals: `
 
             }
         getAssignedQualifications();
+            console.log(timeout)
         }
 
 )
