@@ -1,4 +1,5 @@
 
+
 // ==UserScript==
 // @name         testing
 // @namespace    http://tampermonkey.net/
@@ -20,6 +21,7 @@
 let timeout = "1850";
 let counter = " ";
 let retry_count = "0";
+let page = "https://worker.mturk.com/qualifications/assigned.json?page_size=100";
 window.onload = function ()
 {
    let t = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
@@ -79,17 +81,17 @@ quals: `
                 counter++
                 $("#progressBar").html("&nbsp&nbsp&nbspProcessing&nbsppage&nbsp"+counter);
             //console.log(counter)
-				let scraping = "true";
-				let page = "https://worker.mturk.com/qualifications/assigned.json?page_size=100&" + nextPageToken;
+				//let scraping = "true";
+				//let page = "https://worker.mturk.com/qualifications/assigned.json?page_size=100&next_page=$" + nextPageToken;
 
 				$.getJSON(page)
 					.then(function (data)
 					{
-						data.assigned_qualifications.forEach(function (t, i)
+						data.assigned_qualifications.forEach(function (t)
 						{
-							db.quals.bulkPut([
+							db.quals.bulkAdd([
 							{
-								id: i,
+								id: t.request_qualification_url,
 								requester: t.creator_name,
 								description: t.description,
 								canRetake: t.can_retake_test_or_rerequest,
@@ -98,7 +100,7 @@ quals: `
 								date: t.grant_time,
 								qualName: t.name,
 								reqURL: t.creator_url,
-								reqQURL: t.request_qualification_url,
+								//reqQURL: t.request_qualification_url,
 								retURL: t.retake_test_url,
 								isSystem: t.is_system_qualification,
 								canRequest: t.is_requestable,
