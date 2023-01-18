@@ -1,16 +1,34 @@
+
+// ==UserScript==
+// @name         testing
+// @namespace    http://tampermonkey.net/
+// @version      0.1
+// @description  try to take over the world!
+// @author       You
+// @match        https://worker.mturk.com/qualifications/*
+// @match        https://worker.mturk.com/qt
+// @require      https://code.jquery.com/jquery-3.6.3.js
+// @require      https://unpkg.com/dexie/dist/dexie.js
+// @require      https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js
+// @resource     https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css
+// @resource     https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-apline.css
+
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=mturk.com
+// @grant        none
+// ==/UserScript==
+
 let timeout = 1850;
 let counter = " ";
 let retry_count = 0;
 let page = "https://worker.mturk.com/qualifications/assigned.json?page_size=100";
 let timeoutId = undefined;
+let scraping = false
 window.onload = function() {
   let t = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
     e = t.parentNode,
     o = document.createElement("button");
   (o.style.background = "#343aeb"),
-  (o.style.border = "3px"),
-  (o.style.padding = "0px 14px"),
-  (o.style.fontSize = "15px"),
   (o.style.color = "#fff"),
   (o.id = "button"),
   (o.innerHTML = "Scrape&nbspQuals"),
@@ -28,7 +46,7 @@ window.onload = function() {
   bParent.insertBefore(bar, b);;
 
   document.getElementById("button").addEventListener("click", function e() {
-
+      scraping = true;
       $("#button").remove();
       let t = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
         e = t.parentNode,
@@ -39,20 +57,12 @@ window.onload = function() {
       (c.id = "cancelButton"),
       e.insertBefore(c, t);
 
+
+
       document.getElementById("cancelButton").addEventListener("click", function e() {
-        try {
-          console.log("TEST");
-          throw new Error("Cancelled");
-          return;
-        } catch (error) {
-          if (error.message === "Cancelled") {
-            // Code to handle the "Cancelled" error
-            return;
-          } else {
-            throw error;
-          }
-        }
-      });
+      scraping = false
+
+      })
 
       var db = new Dexie("qualifications");
 
@@ -75,13 +85,15 @@ window.onload = function() {
       });
 
       function getAssignedQualifications(nextPageToken = "")
+{ if(!scraping) {
+    return;
+  }
 
-
-      {
         counter++
         $("#progressBar").html("&nbsp&nbsp&nbspProcessing&nbsppage&nbsp" + counter + "&nbsp&nbsp&nbsp");
 
         $.getJSON(page)
+
           .then(function(data) {
             data.assigned_qualifications.forEach(function(t) {
               db.quals.bulkAdd([{
@@ -94,7 +106,6 @@ window.onload = function() {
                 date: t.grant_time,
                 qualName: t.name,
                 reqURL: t.creator_url,
-                //reqQURL: t.request_qualification_url,
                 retURL: t.retake_test_url,
                 isSystem: t.is_system_qualification,
                 canRequest: t.is_requestable,
@@ -134,9 +145,9 @@ window.onload = function() {
               $("#button").css("background-color", "#e80c0f");
               document.getElementById("button").addEventListener("click", function e() {
                   location.reload()
+              }
 
 
-                }
 
               )
 
@@ -145,13 +156,11 @@ window.onload = function() {
           )
 
       }
-      getAssignedQualifications();
-      //console.log(timeoutId);
-      //if(cancel){
-      // return;}
 
-      console.log(setTimeout)
-    }
+      getAssignedQualifications();
+
+      }
+
 
   )
 
@@ -300,3 +309,6 @@ if (location.href === "https://worker.mturk.com/qt") {
     })
   })
 }
+
+
+
