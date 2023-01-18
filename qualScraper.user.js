@@ -5,7 +5,7 @@
 // @version      0.1
 // @description  try to take over the world!
 // @author       You
-// @match        https://worker.mturk.com/qualifications/*
+// @match        https://worker.mturk.com/qualifications/assigned
 // @match        https://worker.mturk.com/qt
 // @require      https://code.jquery.com/jquery-3.6.3.js
 // @require      https://unpkg.com/dexie/dist/dexie.js
@@ -18,14 +18,18 @@
 // @grant        none
 // ==/UserScript==
 
+/*variables*/
 let timeout = 1850;
 let counter = " ";
 let retry_count = 0;
 let page = "https://worker.mturk.com/qualifications/assigned.json?page_size=100";
 let timeoutId = undefined;
 let scraping = false
-window.onload = function() {
-  let t = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
+
+window.onload = function() { //wait for page to load
+
+/*buttons*/
+    let t = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
     e = t.parentNode,
     o = document.createElement("button");
   (o.style.background = "#343aeb"),
@@ -33,19 +37,7 @@ window.onload = function() {
   (o.id = "button"),
   (o.innerHTML = "Scrape&nbspQuals"),
   e.insertBefore(o, t);
-  let b = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
-    bParent = b.parentNode,
-    bar = document.createElement("div");
-  (bar.id = "progressBar"),
-  (bar.innerHTML = `&nbsp&nbsp&nbsp` + counter +
-
-    `&nbsp&nbsp&nbsp
-    <!-- Progress bar-->
-   `
-  )
-  bParent.insertBefore(bar, b);;
-
-  document.getElementById("button").addEventListener("click", function e() {
+    document.getElementById("button").addEventListener("click", function e() {
       scraping = true;
       $("#button").remove();
       let t = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
@@ -56,17 +48,20 @@ window.onload = function() {
       (c.innerHTML = "Cancel"),
       (c.id = "cancelButton"),
       e.insertBefore(c, t);
+  let b = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
+    bParent = b.parentNode,
+    bar = document.createElement("div");
+  (bar.id = "progressBar"),
+  (bar.innerHTML = "&nbsp&nbsp&nbsp" + counter + "&nbsp&nbsp&nbsp")
+  bParent.insertBefore(bar, b);;
+    document.getElementById("cancelButton").addEventListener("click", function e() {
+      $("#cancelButton").remove();
+          $("#progressBar").html("&nbsp&nbsp&nbsp&nbspCanceled&nbsp&nbsp<br>" + counter + "&nbsppages&nbspscraped");
+       scraping = false
+          })
 
-
-
-      document.getElementById("cancelButton").addEventListener("click", function e() {
-      scraping = false
-
-      })
-
+/*init db*/
       var db = new Dexie("qualifications");
-
-
       db.version(1).stores({
         quals: `
         id,
@@ -84,12 +79,10 @@ window.onload = function() {
         isSystem`
       });
 
+/*main loop*/
       function getAssignedQualifications(nextPageToken = "")
-{ if(!scraping) {
-    return;
-  }
-
-        counter++
+{ if(!scraping) { return;} //cancel trap
+       counter++
         $("#progressBar").html("&nbsp&nbsp&nbspProcessing&nbsppage&nbsp" + counter + "&nbsp&nbsp&nbsp");
 
         $.getJSON(page)
@@ -129,7 +122,7 @@ window.onload = function() {
             }
           })
 
-          .catch(function(error) {
+          .catch(function(error) { //handle timeouts
               if (error.status === 429 && retry_count < 5) {
                 retry_count++;
                 timeout += 500;
@@ -166,22 +159,17 @@ window.onload = function() {
 
 };
 
-//console.log(counter)
-
-
-
-
-
+/*ag-grid*/
 if (location.href === "https://worker.mturk.com/qt") {
   document.body.innerHTML = "";
   let gridDiv = document.createElement("div");
   gridDiv.setAttribute("id", "gridDiv");
   document.body.appendChild(gridDiv);
-  document.title = "TEST";
+  document.title = "Qualifications";
 
+
+ /*init db*/
   var db = new Dexie("qualifications");
-
-
   db.version(1).stores({
     quals: `
         id,
@@ -199,42 +187,27 @@ if (location.href === "https://worker.mturk.com/qt") {
         isSystem`
   });
 
-
-
-
-
-
-
-
   gridDiv.innerHTML = `
-<div id="myGrid" style=" width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;" class="ag-theme-alpine">
+<div id="myGrid"  class="ag-theme-alpine">
 <style>
 .ag-theme-alpine {
     --ag-grid-size: 3px;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
-    @media only screen {
-        html, body {
-            height: 100%;
-            width: 100%;
-            margin: 0;
-            box-sizing: border-box;
-            -webkit-overflow-scrolling: touch;
-        }
-        html {
-            position: absolute;
-            top: 0;
-            left: 0;
-            padding: 0;
-            overflow: auto;
-        }
-        body {
-            padding: 1rem;
-            overflow: auto;
-        }
-    }
 </style>
      </div>`
 
+
+setTimeout(function ()
+{
+   $scope.gridOptions.api.refreshView();
+}, 0);
 
   const gridOptions = {
     columnDefs: [{
@@ -247,6 +220,7 @@ if (location.href === "https://worker.mturk.com/qt") {
         field: "description"
       },
       {
+        headerName: "Value",
         field: "score",
         width: 100
       },
@@ -254,40 +228,69 @@ if (location.href === "https://worker.mturk.com/qt") {
         field: "date",
         width: 120,
       },
+                         {
+                             headerName:  "Requester ID",
+            field: "reqURL",
+            valueFormatter: function(params) {
+    if(!params.value || params.value === '') return '';
+    var parts = params.value.split("/");
+    return parts[2];
+
+  },
+            columnGroupShow: 'open'
+          },
+          {
+              headerName: "Qual ID",
+            field: "reqQURL",
+            columnGroupShow: 'open',
+              valueFormatter: function(params) {
+    if(!params.value || params.value === '') return '';
+    var parts = params.value.split("/");
+    return parts[2];
+
+              }
+          },
       {
-        headerName: 'Other Details',
+        headerName: 'More',
         children: [{
-            field: "canRetake",
+            headerName: " ",
+            field: " ",
+            width: 100,
             columnGroupShow: 'closed'
           },
+           {
+            headerName: "Retake",
+            field: "canRetake",
+            width: 100,
+            columnGroupShow: 'open',
+               suppressMenu: true
+          },
           {
+              headerName: "hasTest",
             field: "hasTest",
-            columnGroupShow: 'open'
+               width: 100,
+            columnGroupShow: 'open',
+              suppressMenu: true
           },
           {
+              headerName: "canReq",
             field: "canRequest",
-            columnGroupShow: 'open'
+               width: 100,
+            columnGroupShow: 'open',
+            suppressMenu: true
           },
           {
+              headerName: "System",
             field: "isSystem",
-            columnGroupShow: 'open'
+               width: 100,
+            columnGroupShow: 'open',
+           suppressMenu: true
           },
-          {
-            field: "id",
-            columnGroupShow: 'open'
-          },
-          {
-            field: "reqURL",
-            columnGroupShow: 'open'
-          },
-          {
-            field: "reqQURL",
-            columnGroupShow: 'open'
-          },
-          {
-            field: "retURL",
-            columnGroupShow: 'open'
-          },
+                   {
+                   headerName: "id",
+                   field: "id",
+
+                   }
         ]
       }
     ],
@@ -301,11 +304,13 @@ if (location.href === "https://worker.mturk.com/qt") {
     animateRows: true,
     rowData: []
   };
+
   window.addEventListener('load', function() {
     const gridDiv = document.querySelector('#myGrid');
     db.quals.toArray().then(data => {
       gridOptions.rowData = data;
       new agGrid.Grid(gridDiv, gridOptions);
+
     })
   })
 }
