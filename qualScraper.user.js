@@ -1,22 +1,22 @@
-
 // ==UserScript==
 // @name         Mturk Qualification Database and Scraper
 // @namespace    https://greasyfork.org/en/users/1004048-elias041
 // @version      0.1
 // @description  Scrape, display, sort and search your Mturk qualifications
 // @author       Elias041
+// @license      none
 // @match        https://worker.mturk.com/qualifications/assigned
 // @match        https://worker.mturk.com/qt
 // @require      https://code.jquery.com/jquery-3.6.3.js
 // @require      https://unpkg.com/dexie/dist/dexie.js
-// @require      https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js
+// @require      https://unpkg.com/ag-grid-community@29.0.0/dist/ag-grid-community.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js
 // @resource     https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css
 // @resource     https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-apline.css
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=mturk.com
 // @grant        none
 // ==/UserScript==
-
+ 
 /*variables*/
 let timeout = 1850;
 let counter = " ";
@@ -25,7 +25,7 @@ let page = "https://worker.mturk.com/qualifications/assigned.json?page_size=100"
 let timeoutId = undefined;
 let scraping = false
 window.onload = function() { //wait for page to load
-
+ 
 	/*buttons*/
 	let t = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
 		e = t.parentNode,
@@ -58,7 +58,7 @@ window.onload = function() { //wait for page to load
 				$("#progressBar").html("&nbsp&nbsp&nbsp&nbspCanceled&nbsp&nbsp<br>" + counter + "&nbsppages&nbspscraped");
 				scraping = false
 			})
-
+ 
 			/*init db*/
 			var db = new Dexie("qualifications");
 			db.version(1).stores({
@@ -77,7 +77,7 @@ window.onload = function() { //wait for page to load
         canRequest,
         isSystem`
 			});
-
+ 
 			/*main loop*/
 			function getAssignedQualifications(nextPageToken = "") {
 				if (!scraping) {
@@ -85,9 +85,9 @@ window.onload = function() { //wait for page to load
 				} //cancel trap
 				counter++
 				$("#progressBar").html("&nbsp&nbsp&nbspProcessing&nbsppage&nbsp" + counter + "&nbsp&nbsp&nbsp");
-
+ 
 				$.getJSON(page)
-
+ 
 					.then(function(data) {
 						data.assigned_qualifications.forEach(function(t) {
 							db.quals.bulkAdd([{
@@ -106,14 +106,14 @@ window.onload = function() { //wait for page to load
 								hasTest: t.has_test
 							}])
 						})
-
+ 
 						if (data.next_page_token !== null) {
 							timeoutId = setTimeout(() => {
 								page = `https://worker.mturk.com/qualifications/assigned.json?page_size=100&next_token=${encodeURIComponent(data.next_page_token)}`
 								getAssignedQualifications(data.next_page_token);
 							}, timeout);
-
-
+ 
+ 
 						} else {
 							console.log("Scraping completed");
 							console.log(counter + "pages");
@@ -122,7 +122,7 @@ window.onload = function() { //wait for page to load
 							$("#progressBar").html("&nbsp&nbsp&nbspScrape&nbspComplete<br>&nbsp&nbsp&nbsp" + counter + "&nbspPages<br>&nbsp&nbsp&nbsp<a href='https://worker.mturk.com/qt' target='_blank'>Click&nbspHere</a>");
 						}
 					})
-
+ 
 					.catch(function(error) { //handle timeouts
 							if (error.status === 429 && retry_count < 5) {
 								retry_count++;
@@ -134,32 +134,32 @@ window.onload = function() { //wait for page to load
 							} else {
 								$("#progressBar").html("Timed&nbspout&nbsp5&nbsptimes,&nbspaborting.&nbsp" + timeout + "&nbspmilliseconds.");
 								console.log("Timed out 5 times, aborting. " + timeout + " milliseconds.");
-
+ 
 							}
 							/* $("#button").html("Retry?");
 							 $("#button").css("background-color", "#e80c0f");
 							 document.getElementById("button").addEventListener("click", function e() {
 							     location.reload()
-
-
-
+ 
+ 
+ 
 							 }*/
-
+ 
 						}
-
+ 
 					)
-
+ 
 			}
-
+ 
 			getAssignedQualifications();
-
+ 
 		}
-
-
+ 
+ 
 	)
-
+ 
 };
-
+ 
 /*ag-grid*/
 if (location.href === "https://worker.mturk.com/qt") {
 	document.body.innerHTML = "";
@@ -167,8 +167,8 @@ if (location.href === "https://worker.mturk.com/qt") {
 	gridDiv.setAttribute("id", "gridDiv");
 	document.body.appendChild(gridDiv);
 	document.title = "Qualifications";
-
-
+ 
+ 
 	/*init db*/
 	var db = new Dexie("qualifications");
 	db.version(1).stores({
@@ -187,7 +187,7 @@ if (location.href === "https://worker.mturk.com/qt") {
         canRequest,
         isSystem`
 	});
-
+ 
 	gridDiv.innerHTML = `
 <div id="myGrid"  class="ag-theme-alpine">
 <style>
@@ -203,64 +203,77 @@ if (location.href === "https://worker.mturk.com/qt") {
 }
 </style>
      </div>`
-
-
-
+ 
+/*cellRenderer: 'btnCellRenderer',
+      cellRendererParams: {
+        clicked: function(field) {
+          alert(`${field} was clicked`);
+        }
+      },*/
+ 
 	const gridOptions = {
 		columnDefs: [{
+            headerName: 'Mturk Qualification Database and Scraper',
+				children: [{
 				field: "qualName"
 			},
 			{
 				field: "requester"
-			},
-			{
-				field: "description"
+            }]},
+ 
+ 
+                     {
+                         headerName: ' ',
+				children: [{
+ 
+ 
+				field: "description",
+                width: 350
       },
       {
+          headerName: "Value",
         field: "score",
         width: 100
       },
       {
         headerName: "Date",
         field: "date",
+          width: 100,
         valueGetter: function(params) {
-            // parse date string and create JavaScript date object
             var date = new Date(params.data.date);
-            // format the date as "MM/dd/yyyy"
-            return (date.getMonth() + 1) + "/" + date.getDate() + "/" + date.getFullYear();
+          return (date.getMonth() + 1) + "/" + date.getDate() + "/" + date.getFullYear();
         },
         comparator: function(valueA, valueB, nodeA, nodeB, isInverted) {
-            // create JavaScript date objects from the formatted date strings
-            var dateA = new Date(valueA);
+        var dateA = new Date(valueA);
             var dateB = new Date(valueB);
-            // compare the date objects
-            return dateA - dateB;
+         return dateA - dateB;
         },
 		//valueFormatter: function(params) {
-			// format the date as you want
-		//	return new Date(params.value).toString().substring(4, 15);
+			//	return new Date(params.value).toString().substring(4, 15);
 		//}
       },
 	  {
+ 
 				headerName: "Requester ID",
+                width: 150,
 				field: "reqURL",
 				valueFormatter: function(params) {
 					var parts = params.value.split("/");
 					return parts[2];
-
+ 
 				},
-				columnGroupShow: 'open'
+ 
 			},
 			{
 				headerName: "Qual ID",
 				field: "id",
-
+ 
 				valueFormatter: function(params) {
 					if (!params.value || params.value === '') return '';
 					var parts = params.value.split("/");
 					return parts[2];
-
-				}
+ 
+				}}]
 			},
 			{
 				headerName: 'More',
@@ -298,11 +311,15 @@ if (location.href === "https://worker.mturk.com/qt") {
 						columnGroupShow: 'open',
 						suppressMenu: true
 					},
-					{
+					/*{
 						headerName: "id",
 						field: "id",
-
-					}
+                        hidden: "true",
+                        width: 0,
+                      columnGroupShow: 'open',
+						suppressMenu: true
+ 
+					}*/
 				]
 			}
 		],
@@ -316,16 +333,13 @@ if (location.href === "https://worker.mturk.com/qt") {
 		animateRows: true,
 		rowData: []
 	};
-
+ 
 	window.addEventListener('load', function() {
 		const gridDiv = document.querySelector('#myGrid');
 		db.quals.toArray().then(data => {
 			gridOptions.rowData = data;
 			new agGrid.Grid(gridDiv, gridOptions);
-
+ 
 		})
 	})
 }
-
-
-
