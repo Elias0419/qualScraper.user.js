@@ -57,7 +57,7 @@ window.onload = function() { //wait for page to load
 		d.style.background = "#fc0f03";
         d.style.padding = "10px";
 	    d.style.boxShadow = "2px 2px 4px #888888";
-	    d.style.background = "#6F7094";
+	    d.style.background = "#323552";
 	    d.style.opacity = "0.5";
 	    d.innerHTML = "Database";
 		d.id = "dbButton";
@@ -78,7 +78,19 @@ document.getElementById("cancelButton").addEventListener("click", function e() {
 			scraping = true;
         $("#button").css ('background', '#383c44')
         $("#cancelButton").css ('background', '#CE3132')
-			})
+		  let t = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
+		e = t.parentNode,
+		o = document.createElement("div");
+        o.style.color = "#fff";
+        o.style.padding = "10px";
+	    o.style.boxShadow = "2px 2px 4px #888888";
+	    o.style.background = "#33773A";
+	    o.style.opacity = "0.5";
+        o.id = "progress";
+	    o.innerHTML = counter;
+	e.insertBefore(o, t);	
+	
+	})
  
 			/*init db*/
 			var db = new Dexie("qualifications");
@@ -105,6 +117,7 @@ document.getElementById("cancelButton").addEventListener("click", function e() {
 					return;
 				} //cancel trap
 				counter++
+				$("#progress").html(counter);
 				//$("#progressBar").html("&nbsp&nbsp&nbspProcessing&nbsppage&nbsp" + counter + "&nbsp&nbsp&nbsp");
  
 				$.getJSON(page)
