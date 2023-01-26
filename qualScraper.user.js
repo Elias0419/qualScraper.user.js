@@ -337,9 +337,16 @@ if (location.href === "https://worker.mturk.com/qt") {
 	window.addEventListener('load', function() {
 		const gridDiv = document.querySelector('#myGrid');
 		db.quals.toArray().then(data => {
-			gridOptions.rowData = data;
+
+ var filteredData = data.filter(function(row) {
+    return !row.qualName.includes("Exc: [");
+});
+            gridOptions.rowData = filteredData;
 			new agGrid.Grid(gridDiv, gridOptions);
- 
+
 		})
 	})
-}
+};
+
+
+
