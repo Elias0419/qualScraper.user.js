@@ -29,34 +29,55 @@ window.onload = function() { //wait for page to load
 	/*buttons*/
 	let t = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
 		e = t.parentNode,
-		o = document.createElement("button");
-	(o.style.background = "#343aeb"),
-	(o.style.color = "#fff"),
-	(o.id = "button"),
-	(o.innerHTML = "Scrape&nbspQuals"),
+		o = document.createElement("div");
+        o.style.color = "#fff";
+        o.style.padding = "10px";
+	    o.style.boxShadow = "2px 2px 4px #888888";
+	    o.style.background = "#33773A";
+	    o.style.opacity = "0.5";
+        o.id = "button";
+	    o.innerHTML = "Scrape&nbspQuals";
 	e.insertBefore(o, t);
+
+   let c = document.createElement("div");
+		c.style.color = "#fff";
+		c.style.background = "#C78D99";
+        c.style.padding = "10px";
+	    c.style.boxShadow = "2px 2px 4px #888888";
+	    c.style.background = "#383c44";
+	    c.style.opacity = "0.5";
+	    c.innerHTML = "Cancel";
+	    c.id = "cancelButton";
+	e.insertBefore(c, t);
+
+
+
+    let d = document.createElement("div");
+		d.style.color = "#fff";
+		d.style.background = "#fc0f03";
+        d.style.padding = "10px";
+	    d.style.boxShadow = "2px 2px 4px #888888";
+	    d.style.background = "#6F7094";
+	    d.style.opacity = "0.5";
+	    d.innerHTML = "Database";
+		d.id = "dbButton";
+	e.insertBefore(d, t);
+
+document.getElementById("dbButton").addEventListener("click", function e() {
+			window.open("https://worker.mturk.com/qt", "_blank")
+			})
+
+
+document.getElementById("cancelButton").addEventListener("click", function e() {
+				scraping = false
+    $("#cancelButton").css ('background', '#383c44')
+	$("#button").css ('background', '#33773A')
+
+})
 	document.getElementById("button").addEventListener("click", function e() {
 			scraping = true;
-			//$("#cancelButton").dialog({})
-			$("#button").remove();
-			let t = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
-				e = t.parentNode,
-				c = document.createElement("button");
-			(c.style.color = "#fff"),
-			(c.style.background = "#fc0f03"),
-			(c.innerHTML = "Cancel"),
-			(c.id = "cancelButton"),
-			e.insertBefore(c, t);
-			let b = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
-				bParent = b.parentNode,
-				bar = document.createElement("div");
-			(bar.id = "progressBar"),
-			(bar.innerHTML = "&nbsp&nbsp&nbsp" + counter + "&nbsp&nbsp&nbsp")
-			bParent.insertBefore(bar, b);;
-			document.getElementById("cancelButton").addEventListener("click", function e() {
-				$("#cancelButton").remove();
-				$("#progressBar").html("&nbsp&nbsp&nbsp&nbspCanceled&nbsp&nbsp<br>" + counter + "&nbsppages&nbspscraped");
-				scraping = false
+        $("#button").css ('background', '#383c44')
+        $("#cancelButton").css ('background', '#CE3132')
 			})
  
 			/*init db*/
@@ -84,7 +105,7 @@ window.onload = function() { //wait for page to load
 					return;
 				} //cancel trap
 				counter++
-				$("#progressBar").html("&nbsp&nbsp&nbspProcessing&nbsppage&nbsp" + counter + "&nbsp&nbsp&nbsp");
+				//$("#progressBar").html("&nbsp&nbsp&nbspProcessing&nbsppage&nbsp" + counter + "&nbsp&nbsp&nbsp");
  
 				$.getJSON(page)
  
