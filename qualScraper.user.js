@@ -62,6 +62,16 @@ window.onload = function() { //wait for page to load
 	    d.innerHTML = "Database";
 		d.id = "dbButton";
 	e.insertBefore(d, t);
+	
+	 let	f = document.createElement("div");
+        f.style.color = "#fff";
+        f.style.padding = "10px";
+	    f.style.boxShadow = "2px 2px 4px #888888";
+	    f.style.background = "#33773A";
+	    f.style.opacity = "0.5";
+        f.id = "progress";
+	    f.innerHTML = "-";
+	e.insertBefore(f, t);
 
 document.getElementById("dbButton").addEventListener("click", function e() {
 			window.open("https://worker.mturk.com/qt", "_blank")
@@ -72,23 +82,13 @@ document.getElementById("cancelButton").addEventListener("click", function e() {
 				scraping = false
     $("#cancelButton").css ('background', '#383c44')
 	$("#button").css ('background', '#33773A')
+	$("#progress").html("-")
 
 })
 	document.getElementById("button").addEventListener("click", function e() {
 			scraping = true;
-        $("#button").css ('background', '#383c44')
+     $("#button").css ('background', '#383c44')
         $("#cancelButton").css ('background', '#CE3132')
-		  let t = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
-		e = t.parentNode,
-		o = document.createElement("div");
-        o.style.color = "#fff";
-        o.style.padding = "10px";
-	    o.style.boxShadow = "2px 2px 4px #888888";
-	    o.style.background = "#33773A";
-	    o.style.opacity = "0.5";
-        o.id = "progress";
-	    o.innerHTML = counter;
-	e.insertBefore(o, t);	
 	
 	})
  
@@ -153,7 +153,9 @@ document.getElementById("cancelButton").addEventListener("click", function e() {
 							console.log(counter + "pages");
 							console.log("Timeout" + timeout);
 							console.log(retry_count + "timeouts");
-							$("#progressBar").html("&nbsp&nbsp&nbspScrape&nbspComplete<br>&nbsp&nbsp&nbsp" + counter + "&nbspPages<br>&nbsp&nbsp&nbsp<a href='https://worker.mturk.com/qt' target='_blank'>Click&nbspHere</a>");
+							 $("#cancelButton").css ('background', '#CE3132')
+                             $("#progress").css ('background', '##25dc12')
+							$("#progress").html('&#10003;')
 						}
 					})
  
@@ -166,7 +168,7 @@ document.getElementById("cancelButton").addEventListener("click", function e() {
 									getAssignedQualifications(nextPageToken);
 								}, 10000);
 							} else {
-								$("#progressBar").html("Timed&nbspout&nbsp5&nbsptimes,&nbspaborting.&nbsp" + timeout + "&nbspmilliseconds.");
+								//$("#progressBar").html("Timed&nbspout&nbsp5&nbsptimes,&nbspaborting.&nbsp" + timeout + "&nbspmilliseconds.");
 								console.log("Timed out 5 times, aborting. " + timeout + " milliseconds.");
  
 							}
