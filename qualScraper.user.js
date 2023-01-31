@@ -1,8 +1,7 @@
-
 // ==UserScript==
-// @name         testing
+// @name         Mturk Qualification Database and Scraper
 // @namespace    https://greasyfork.org/en/users/1004048-elias041
-// @version      0.2
+// @version      0.5
 // @description  Scrape, display, sort and search your Mturk qualifications
 // @author       Elias041
 // @match        https://worker.mturk.com/qualifications/assigned
@@ -15,10 +14,11 @@
 // @resource     https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css
 // @resource     https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-apline.css
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=mturk.com
+// @license      none
 // @grant        none
 // ==/UserScript==
-
-
+ 
+ 
 let timeout = 1850;
 let counter = " ";
 let retry_count = 0;
@@ -27,9 +27,9 @@ let timeoutId = undefined;
 let scraping = false
 window.onload = function ()
 {
-
-
-
+ 
+ 
+ 
 	let t = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
 		e = t.parentNode,
 		o = document.createElement("div");
@@ -38,10 +38,11 @@ window.onload = function ()
 	o.style.boxShadow = "2px 2px 4px #888888";
 	o.style.background = "#33773A";
 	o.style.opacity = "0.5";
+        o.style.cursor = "pointer";
 	o.id = "button";
 	o.innerHTML = "Scrape&nbspQuals";
 	e.insertBefore(o, t);
-
+ 
 	let c = document.createElement("div");
 	c.style.color = "#fff";
 	c.style.background = "#C78D99";
@@ -49,11 +50,12 @@ window.onload = function ()
 	c.style.boxShadow = "2px 2px 4px #888888";
 	c.style.background = "#383c44";
 	c.style.opacity = "0.5";
+        c.style.cursor = "pointer";
 	c.innerHTML = "Cancel";
 	c.id = "cancelButton";
 	e.insertBefore(c, t);
-
-
+ 
+ 
     let d = document.createElement("div");
 	d.style.color = "#fff";
 	d.style.background = "#fc0f03";
@@ -61,10 +63,11 @@ window.onload = function ()
 	d.style.boxShadow = "2px 2px 4px #888888";
 	d.style.background = "#323552";
 	d.style.opacity = "0.5";
+    d.style.cursor = "pointer";
 	d.innerHTML = "Database";
 	d.id = "dbButton";
 	e.insertBefore(d, t);
-
+ 
 	let f = document.createElement("div");
 	f.style.color = "#fff";
 	f.style.padding = "10px";
@@ -74,17 +77,17 @@ window.onload = function ()
 	f.id = "progress";
 	f.innerHTML = "-";
 	e.insertBefore(f, t);
-
+ 
 	document.getElementById("dbButton").addEventListener("click", function e()
 	{
 		window.open("https://worker.mturk.com/qt", "_blank")
 	})
-
-
-
+ 
+ 
+ 
 	document.getElementById("cancelButton").addEventListener("click", function e()
 	{
-
+ 
 		scraping = false
 		$("#cancelButton").css('background', '#383c44')
 		$("#button").css('background', '#33773A')
@@ -95,9 +98,9 @@ window.onload = function ()
 			scraping = true;
 			$("#button").css('background', '#383c44')
 			$("#cancelButton").css('background', '#CE3132')
-
-
-
+ 
+ 
+ 
 			/*init db*/
 			var db = new Dexie("qualifications");
 			db.version(1).stores(
@@ -117,7 +120,7 @@ window.onload = function ()
         canRequest,
         isSystem`
 			});
-
+ 
 			/*main loop*/
 			function getAssignedQualifications(nextPageToken = "")
 			{
@@ -128,9 +131,9 @@ window.onload = function ()
 				counter++
 				$("#progress").html(counter);
 				//$("#progressBar").html("&nbsp&nbsp&nbspProcessing&nbsppage&nbsp" + counter + "&nbsp&nbsp&nbsp");
-				console.log("scraping")
+				//console.log("scraping")
 				$.getJSON(page)
-
+ 
 					.then(function (data)
 					{
 						data.assigned_qualifications.forEach(function (t)
@@ -152,7 +155,7 @@ window.onload = function ()
 								hasTest: t.has_test
 							}])
 						})
-
+ 
 						if (data.next_page_token !== null)
 						{
 							timeoutId = setTimeout(() =>
@@ -160,8 +163,8 @@ window.onload = function ()
 								page = `https://worker.mturk.com/qualifications/assigned.json?page_size=100&next_token=${encodeURIComponent(data.next_page_token)}`
 								getAssignedQualifications(data.next_page_token);
 							}, timeout);
-
-
+ 
+ 
 						}
 						else
 						{
@@ -169,16 +172,16 @@ window.onload = function ()
 							console.log(counter + "pages");
 							console.log("Timeout" + timeout);
 							console.log(retry_count + "timeouts");
-							$("#cancelButton").css('background', '#CE3132')
-							$("#progress").css('background', '##25dc12')
-							$("#progress").html('&#10003;')
-
+							$("#cancelButton").css('background', '#383c44');
+							$("#progress").css('background', '#25dc12');
+							$("#progress").html('&#10003;');
+                            $("#dbButton$").css('background', '#25dc12');
 						}
 					})
-
+ 
 					.catch(function (error)
 						{ //handle timeouts
-							if (error.status === 429 && retry_count < 5)
+							if (error.status === 429 && retry_count < 10)
 							{
 								retry_count++;
 								timeout += 500;
@@ -190,34 +193,35 @@ window.onload = function ()
 							}
 							else
 							{
-								$("#progressBar").html("Timed&nbspout&nbsp5&nbsptimes,&nbspaborting.&nbsp" + timeout + "&nbspmilliseconds.");
-								console.log("Timed out 5 times, aborting. " + timeout + " milliseconds.");
-
+								$("#progressBar").html("Timed&nbspout&nbsp5&nbsptimes,&nbspaborting.&nbsp" + 
+                                                             timeout + "&nbspmilliseconds.");
+								console.log("Timed out 10 times, aborting. " + timeout + " milliseconds.");
+ 
 							}
 							/* $("#button").html("Retry?");
 							 $("#button").css("background-color", "#e80c0f");
 							 document.getElementById("button").addEventListener("click", function e() {
 							     location.reload()
-
-
-
+ 
+ 
+ 
 							 }*/
-
+ 
 						}
-
+ 
 					)
-
+ 
 			}
-
+ 
 			getAssignedQualifications();
-
+ 
 		}
-
-
+ 
+ 
 	)
-
+ 
 };
-
+ 
 /*ag-grid*/
 if (location.href === "https://worker.mturk.com/qt")
 {
@@ -226,8 +230,8 @@ if (location.href === "https://worker.mturk.com/qt")
 	gridDiv.setAttribute("id", "gridDiv");
 	document.body.appendChild(gridDiv);
 	document.title = "Qualifications";
-
-
+ 
+ 
 	/*init db*/
 	var db = new Dexie("qualifications");
 	db.version(1).stores(
@@ -247,7 +251,7 @@ if (location.href === "https://worker.mturk.com/qt")
         canRequest,
         isSystem`
 	});
-
+ 
 	gridDiv.innerHTML = `
 <div id="myGrid"  class="ag-theme-alpine">
 <style>
@@ -263,8 +267,8 @@ if (location.href === "https://worker.mturk.com/qt")
 }
 </style>
      </div>`
-
-
+ 
+ 
 	const gridOptions = {
 		columnDefs: [
 			{
@@ -277,14 +281,14 @@ if (location.href === "https://worker.mturk.com/qt")
 					field: "requester"
 				}]
 			},
-
-
+ 
+ 
 			{
 				headerName: ' ',
 				children: [
 				{
-
-
+ 
+ 
 					field: "description",
 					width: 350
 				},
@@ -313,7 +317,7 @@ if (location.href === "https://worker.mturk.com/qt")
 					//}
 				},
 				{
-
+ 
 					headerName: "Requester ID",
 					width: 150,
 					field: "reqURL",
@@ -321,20 +325,20 @@ if (location.href === "https://worker.mturk.com/qt")
 					{
 						var parts = params.value.split("/");
 						return parts[2];
-
+ 
 					},
-
+ 
 				},
 				{
 					headerName: "Qual ID",
 					field: "id",
-
+ 
 					valueFormatter: function (params)
 					{
 						if (!params.value || params.value === '') return '';
 						var parts = params.value.split("/");
 						return parts[2];
-
+ 
 					}
 				}]
 			},
@@ -375,7 +379,7 @@ if (location.href === "https://worker.mturk.com/qt")
 						columnGroupShow: 'open',
 						suppressMenu: true
 					},
-
+ 
 				]
 			}
 		],
@@ -390,23 +394,23 @@ if (location.href === "https://worker.mturk.com/qt")
 		animateRows: true,
 		rowData: []
 	};
-
+ 
 	window.addEventListener('load', function ()
 	{
 		const gridDiv = document.querySelector('#myGrid');
 		db.quals.toArray().then(data =>
 		{
-
+ 
 			var filteredData = data.filter(function (row)
 			{
 				return !row.qualName.includes("Exc: [");
 			});
 			gridOptions.rowData = filteredData;
 			new agGrid.Grid(gridDiv, gridOptions);
-
+ 
 		})
 	})
 };
-
-
-
+ 
+ 
+ 
