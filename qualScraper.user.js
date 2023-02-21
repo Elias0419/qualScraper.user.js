@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mturk Qualification Database and Scraper
 // @namespace    https://greasyfork.org/en/users/1004048-elias041
-// @version      0.75
+// @version      0.77
 // @description  Scrape, display, sort and search your Mturk qualifications
 // @author       Elias041
 // @match        https://worker.mturk.com/qualifications/assigned
@@ -17,23 +17,20 @@
 // @license      none
 // @grant        none
 // ==/UserScript==
-
-
+ 
+ 
 let timeout = 1850;
 let counter = " ";
 let retry_count = 0;
 let page = "https://worker.mturk.com/qualifications/assigned.json?page_size=100";
-let timeoutId = undefined;
+let timeoutId;
 let scraping = false;
-let startHover = true;
-let cancelHover = false;
 window.onload = function ()
 {
-
-
-
+ 
+ 
+ 
 	let t = document.getElementsByClassName("col-xs-5 col-md-3 text-xs-right p-l-0")[0],
-
 		e = t.parentNode,
 		o = document.createElement("div");
 	o.style.color = "#fff";
@@ -41,20 +38,11 @@ window.onload = function ()
 	o.style.boxShadow = "2px 2px 4px #888888";
 	o.style.background = "#33773A";
 	o.style.opacity = "0.5";
-     o.style.cursor = "pointer";
-     o.style.cursor = "pointer";
-   /* o.style.transition = "background-color 0.2s ease-in-out";
-
-o.addEventListener("mouseenter", function() {
-  this.style.backgroundColor = "#33913d";
-});
-o.addEventListener("mouseleave", function() {
-  this.style.backgroundColor = "#33773A";
-});*/
+        o.style.cursor = "pointer";
 	o.id = "button";
 	o.innerHTML = "Scrape&nbspQuals";
 	e.insertBefore(o, t);
-
+ 
 	let c = document.createElement("div");
 	c.style.color = "#fff";
 	c.style.background = "#C78D99";
@@ -66,8 +54,8 @@ o.addEventListener("mouseleave", function() {
 	c.innerHTML = "Cancel";
 	c.id = "cancelButton";
 	e.insertBefore(c, t);
-
-
+ 
+ 
     let d = document.createElement("div");
 	d.style.color = "#fff";
 	d.style.background = "#fc0f03";
@@ -79,7 +67,7 @@ o.addEventListener("mouseleave", function() {
 	d.innerHTML = "Database";
 	d.id = "dbButton";
 	e.insertBefore(d, t);
-
+ 
 	let f = document.createElement("div");
 	f.style.color = "#fff";
 	f.style.padding = "10px";
@@ -89,14 +77,14 @@ o.addEventListener("mouseleave", function() {
 	f.id = "progress";
 	f.innerHTML = "-";
 	e.insertBefore(f, t);
-
+ 
 	document.getElementById("dbButton").addEventListener("click", function e()
 	{
-		window.open("https://worker.mturk.com/qt", "_blank")
-	})
-
-
-
+		window.open("https://worker.mturk.com/qt", "_blank");
+	});
+ 
+ 
+ 
 	document.getElementById("cancelButton").addEventListener("click", function e()
 	{
         retry_count=0;
@@ -110,9 +98,9 @@ o.addEventListener("mouseleave", function() {
 			scraping = true;
 			$("#button").css('background', '#383c44')
 			$("#cancelButton").css('background', '#CE3132')
-
-
-
+ 
+ 
+ 
 			/*init db*/
 			var db = new Dexie("qualifications");
 			db.version(1).stores(
@@ -132,7 +120,7 @@ o.addEventListener("mouseleave", function() {
         canRequest,
         isSystem`
 			});
-
+ 
 			/*main loop*/
 			function getAssignedQualifications(nextPageToken = "")
 			{
@@ -142,10 +130,8 @@ o.addEventListener("mouseleave", function() {
 				} //cancel trap
 				counter++
 				$("#progress").html(counter);
-				//$("#progressBar").html("&nbsp&nbsp&nbspProcessing&nbsppage&nbsp" + counter + "&nbsp&nbsp&nbsp");
-				//console.log("scraping")
 				$.getJSON(page)
-
+ 
 					.then(function (data)
 					{
 						data.assigned_qualifications.forEach(function (t)
@@ -167,7 +153,7 @@ o.addEventListener("mouseleave", function() {
 								hasTest: t.has_test
 							}])
 						})
-
+ 
 						if (data.next_page_token !== null)
 						{
 							timeoutId = setTimeout(() =>
@@ -175,8 +161,8 @@ o.addEventListener("mouseleave", function() {
 								page = `https://worker.mturk.com/qualifications/assigned.json?page_size=100&next_token=${encodeURIComponent(data.next_page_token)}`
 								getAssignedQualifications(data.next_page_token);
 							}, timeout);
-
-
+ 
+ 
 						}
 						else if (data.next_page_token === null)
 						{
@@ -189,17 +175,17 @@ o.addEventListener("mouseleave", function() {
 							$("#progress").html('&#10003;');
                             $("#dbButton").css('background', '#57ab4f');
                             return;
-
-
+ 
+ 
                                    } else {
                           console.log("Timeout or abort. Clock was " + timeout);
                          $("#progress").css('background', '#FF0000');
                       $("#progress").html('&#88;');
                                        return;
                                }
-
+ 
 					})
-
+ 
 					.catch(function (error)
 						{ //handle timeouts
 							if (error.status === 429 && retry_count < 10)
@@ -228,36 +214,27 @@ o.addEventListener("mouseleave", function() {
 							}
 							else
 							{
-
-                               // $("#progress").css('background', '#FF0000');
-							    // $("#progress").html('&#88;');
-								//console.log("Timeout or abort. Clock was " + timeout);
+ 
+                             
                                 return;
-
+ 
 							}
-							/* $("#button").html("Retry?");
-							 $("#button").css("background-color", "#e80c0f");
-							 document.getElementById("button").addEventListener("click", function e() {
-							     location.reload()
-
-
-
-							 }*/
+							
 						}
-
+ 
 					)
-
+ 
 			}
-
+ 
 			getAssignedQualifications();
-
+ 
 		}
-
-
+ 
+ 
 	)
-
+ 
 };
-
+ 
 /*ag-grid*/
 if (location.href === "https://worker.mturk.com/qt")
 {
@@ -266,8 +243,8 @@ if (location.href === "https://worker.mturk.com/qt")
 	gridDiv.setAttribute("id", "gridDiv");
 	document.body.appendChild(gridDiv);
 	document.title = "Qualifications";
-
-
+ 
+ 
 	/*init db*/
 	var db = new Dexie("qualifications");
 	db.version(1).stores(
@@ -287,7 +264,7 @@ if (location.href === "https://worker.mturk.com/qt")
         canRequest,
         isSystem`
 	});
-
+ 
 	gridDiv.innerHTML = `
 <div id="myGrid"  class="ag-theme-alpine">
 <style>
@@ -303,8 +280,8 @@ if (location.href === "https://worker.mturk.com/qt")
 }
 </style>
      </div>`
-
-
+ 
+ 
 	const gridOptions = {
 		columnDefs: [
 			{
@@ -321,15 +298,15 @@ if (location.href === "https://worker.mturk.com/qt")
   comparator: function (valueA, valueB, nodeA, nodeB, isInverted) {
     return valueA.toLowerCase().localeCompare(valueB.toLowerCase());
   }
-
+ 
 }]
 			},
-
-
+ 
+ 
 			{
 				headerName: ' ',
 				children: [
-				{field: "description",
+						{field: "description",
 width: 350,
 cellRenderer: function(params) {
     return '<span title="' + params.value + '">' + params.value + '</span>';
@@ -362,7 +339,7 @@ comparator: function (valueA, valueB, nodeA, nodeB, isInverted) {
 					//}
 				},
 				{
-
+ 
 					headerName: "Requester ID",
 					width: 150,
 					field: "reqURL",
@@ -370,20 +347,20 @@ comparator: function (valueA, valueB, nodeA, nodeB, isInverted) {
 					{
 						var parts = params.value.split("/");
 						return parts[2];
-
+ 
 					},
-
+ 
 				},
 				{
 					headerName: "Qual ID",
 					field: "id",
-
+ 
 					valueFormatter: function (params)
 					{
 						if (!params.value || params.value === '') return '';
 						var parts = params.value.split("/");
 						return parts[2];
-
+ 
 					}
 				}]
 			},
@@ -424,7 +401,7 @@ comparator: function (valueA, valueB, nodeA, nodeB, isInverted) {
 						columnGroupShow: 'open',
 						suppressMenu: true
 					},
-
+ 
 				]
 			}
 		],
@@ -439,20 +416,20 @@ comparator: function (valueA, valueB, nodeA, nodeB, isInverted) {
 		animateRows: true,
 		rowData: []
 	};
-
+ 
 	window.addEventListener('load', function ()
 	{
 		const gridDiv = document.querySelector('#myGrid');
 		db.quals.toArray().then(data =>
 		{
-
+ 
 			var filteredData = data.filter(function (row)
 			{
 				return !row.qualName.includes("Exc: [");
 			});
 			gridOptions.rowData = filteredData;
 			new agGrid.Grid(gridDiv, gridOptions);
-
+ 
 		})
 	})
 };
